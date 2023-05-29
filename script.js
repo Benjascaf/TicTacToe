@@ -26,25 +26,29 @@ const GameBoard = (function () {
     console.log(toBePrinted);
   };
 
-  return { playerChose, getBoard, printBoard };
+  const alreadyOcuppied = (index) => gameState[index].getValue() !== "";
+
+  return { playerChose, getBoard, printBoard, alreadyOcuppied };
 })();
 
-const Player = function (token, playerName) {
-  return { token, playerName };
+const Player = function (playerName, token) {
+  const getPlayerToken = () => token;
+  const getPlayerName = () => playerName;
+  return { getPlayerToken, getPlayerName };
 };
 
-const GameController = (function (player1, player2) {
+const GameController = function (player1, player2) {
   let currPlayer = player1;
   let gameContinues = false;
+  let isTie = false;
 
   const switchPlayer = () => {
     currPlayer = currPlayer === player1 ? player2 : player1;
   };
 
-  const printNewRound = () => {
-    console.log(`it's ${currPlayer.playerName}'s Turn`);
-    GameBoard.printBoard();
-  };
+  const getCurrentPLayer = () => currPlayer;
+  const getGameStatus = () => gameContinues;
+  const getTieStatus = () => isTie;
 
   const checkGameState = () => {
     let currState = GameBoard.getBoard();
@@ -80,48 +84,145 @@ const GameController = (function (player1, player2) {
         }
         return false;
       };
-      return { checkColumns, checkRows };
+      const checkDiagonals = () => {
+        //This function would've been far better with a matriz-like
+        //implementation of the board state
+        let fstCell = currState[0].getValue();
+        let sndCell = currState[4].getValue();
+        let thrdCell = currState[8].getValue();
+        let frthCell = currState[2].getValue();
+        let lastCell = currState[6].getValue();
+
+        return (
+          (fstCell != "" && fstCell === sndCell && fstCell === thrdCell) ||
+          (frthCell != "" && frthCell === sndCell && frthCell === lastCell)
+        );
+      };
+
+      const checkForTie = () => {
+        const emptySpaces = currState.filter((cell) => cell.getValue() === "");
+        return emptySpaces.length == 0;
+      };
+      return { checkColumns, checkRows, checkForTie, checkDiagonals };
     })();
-    gameContinues = Checker.checkRows() || Checker.checkColumns();
+    gameContinues =
+      Checker.checkRows() || Checker.checkColumns() || Checker.checkDiagonals();
+    isTie = Checker.checkForTie();
   };
 
-  const playRound = () => {
-    printNewRound();
-    let playerMove = prompt("Where do you play?");
-    GameBoard.playerChose(currPlayer.token, playerMove - 1);
-    console.log(gameContinues);
+  const playRound = (playerMove) => {
+    if (GameBoard.alreadyOcuppied(playerMove)) return;
+    GameBoard.playerChose(currPlayer.getPlayerToken(), playerMove);
     checkGameState();
     if (!gameContinues) switchPlayer();
   };
 
-  const startGame = () => {
-    while (!gameContinues) {
-      playRound();
-    }
-    console.log("The game has finished");
-    console.log(`The winner is ${currPlayer.playerName}`);
-  };
+  return { playRound, getCurrentPLayer, getGameStatus, getTieStatus };
+};
 
-  return { startGame };
-})(Player("x", "Benja"), Player("0", "Z"));
-
-GameController.startGame();
-
-const ScreenUpdater = function () {
-  const gameController = GameController();
+const ScreenUpdater = function (gameController) {
   const board = document.querySelector(".board");
 
   const updateScreen = () => {
     const currBoard = GameBoard.getBoard();
     //reset board
     board.textContent = "";
-    board.forEach((cell, index) => {
+    currBoard.forEach((cell, index) => {
       const cellButton = document.createElement("button");
       cellButton.classList.add("cell");
       cellButton.dataset.index = index;
       cellButton.textContent = cell.getValue();
       board.appendChild(cellButton);
-      cellButton.addEventListener("click");
+      updateGameMessage();
     });
   };
+
+  const onCLickButtonHandler = (event) => {
+    const selectedCellIndex = event.target.dataset.index;
+    if (!selectedCellIndex) return;
+    gameController.playRound(selectedCellIndex);
+    updateScreen();
+  };
+
+  const updateGameMessage = () => {
+    if (gameController.getGameStatus()) {
+      finishGameWithVictory();
+      return;
+    } else if (gameController.getTieStatus()) {
+      finishGameWithTie();
+      return;
+    }
+    const messageContainer = document.querySelector(".game-messages");
+    messageContainer.textContent = `It's ${gameController
+      .getCurrentPLayer()
+      .getPlayerName()}'s turn`;
+  };
+
+  const finishGameWithVictory = () => {
+    const winner = gameController.getCurrentPLayer().getPlayerName();
+    const messageContainer = document.querySelector(".game-messages");
+    messageContainer.textContent = `The Winner is ${winner}!!`;
+    board.removeEventListener("click", onCLickButtonHandler);
+  };
+
+  const finishGameWithTie = () => {
+    const messageContainer = document.querySelector(".game-messages");
+    messageContainer.textContent = `It's a Tie!!`;
+    board.removeEventListener("click", onCLickButtonHandler);
+  };
+
+  board.addEventListener("click", onCLickButtonHandler);
+  updateScreen();
 };
+
+const inputManager = function () {
+  const setUpEventListeners = () => {
+    const singlePlayerButton = document.querySelector(".single_player_button");
+    const multiPlayerButton = document.querySelector(".multi_player_button");
+    // const singlePlayerForm = document.querySelector(
+    //   ".single-player-form-container form"
+    // );
+    const multiPlayerForm = document.querySelector(
+      ".form-container.multi-player"
+    );
+
+    singlePlayerButton.addEventListener("click", displaySinglePlayerForm);
+    multiPlayerButton.addEventListener("click", displayMultiplayerForm);
+    // singlePlayerForm.addEventListener("submit", startSinglePlayerGame);
+    multiPlayerForm.addEventListener("submit", (event) =>
+      startMultiPlayerGame(event)
+    );
+  };
+  const displayMultiplayerForm = () => {
+    const multiPlayerFormContainer = document.querySelector(
+      ".form-container.multi-player"
+    );
+    const singlePlayerFormContainer = document.querySelector(
+      ".form-container.single-player"
+    );
+    multiPlayerFormContainer.style.display = "block";
+    singlePlayerFormContainer.style.display = "none";
+  };
+  const displaySinglePlayerForm = () => {
+    const multiPlayerFormContainer = document.querySelector(
+      ".form-container.multi-player"
+    );
+    const singlePlayerFormContainer = document.querySelector(
+      ".form-container.single-player"
+    );
+    multiPlayerFormContainer.style.display = "none";
+    singlePlayerFormContainer.style.display = "block";
+  };
+
+  const startMultiPlayerGame = (event) => {
+    event.preventDefault();
+    const firstPlayerName = document.querySelector("#player1_name").value;
+    const secondPlayerName = document.querySelector("#player2_name").value;
+    const firstPlayer = Player(firstPlayerName, "X");
+    const secondPlayer = Player(secondPlayerName, "O");
+    const multiPlayerGameController = GameController(firstPlayer, secondPlayer);
+    ScreenUpdater(multiPlayerGameController);
+  };
+  setUpEventListeners();
+};
+inputManager();

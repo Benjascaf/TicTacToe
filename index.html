@@ -9,16 +9,50 @@
     <script src="script.js" defer></script>
   </head>
   <body>
-    <div class="board">
-      <button class="cell" data-index="0">dwecec</button>
-      <button class="cell" data-index="1">ecwcece</button>
-      <button class="cell" data-index="2">cwecw</button>
-      <button class="cell" data-index="3">cwecew</button>
-      <button class="cell" data-index="4">cewce</button>
-      <button class="cell" data-index="5">cwec</button>
-      <button class="cell" data-index="6">cwec</button>
-      <button class="cell" data-index="7">cewce</button>
-      <button class="cell" data-index="8">cwceew</button>
+    <div class="game-container">
+      <div class="game-messages">
+        <div class="form-container multi-player">
+          <form>
+            <div class="player-info">
+              <label for="player1_name">First player's name</label>
+              <input type="text" id="player1_name" required />
+            </div>
+            <div class="player-info">
+              <label for="player2_name">Second player's name</label>
+              <input type="text" id="player2_name" required />
+            </div>
+            <div class="buttons">
+              <button type="submit">Let's Go!</button>
+              <button type="button" class="single_player_button">
+                Single Player :(
+              </button>
+            </div>
+          </form>
+        </div>
+        <div class="form-container single-player">
+          <form>
+            <label for="player_name">Player's name</label>
+            <input type="text" id="player_name" required />
+            <div class="buttons">
+              <button type="submit">Let's Go!</button>
+              <button type="button" class="multi_player_button">
+                Two Players :)
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+      <div class="board">
+        <button class="cell" data-index="0"></button>
+        <button class="cell" data-index="1"></button>
+        <button class="cell" data-index="2"></button>
+        <button class="cell" data-index="3"></button>
+        <button class="cell" data-index="4"></button>
+        <button class="cell" data-index="5"></button>
+        <button class="cell" data-index="6"></button>
+        <button class="cell" data-index="7"></button>
+        <button class="cell" data-index="8"></button>
+      </div>
     </div>
   </body>
 </html>
