@@ -32,8 +32,9 @@ body {
   padding: 20px;
 }
 
-.game-messages {
+.game-info {
   font-size: 1.6rem;
+  display: none;
 }
 .board {
   aspect-ratio: 1 / 1;
@@ -57,6 +58,7 @@ body {
   max-width: 200px;
   font-size: 1rem;
   margin: auto;
+  display: block;
 }
 form {
   display: grid;

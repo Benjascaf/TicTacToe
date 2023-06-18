@@ -26,9 +26,11 @@ const GameBoard = (function () {
     console.log(toBePrinted);
   };
 
+  const resetBoard = () => gameState.forEach((cell) => cell.changeValue(""));
+
   const alreadyOcuppied = (index) => gameState[index].getValue() !== "";
 
-  return { playerChose, getBoard, printBoard, alreadyOcuppied };
+  return { playerChose, getBoard, printBoard, alreadyOcuppied, resetBoard };
 })();
 
 const Player = function (playerName, token) {
@@ -85,7 +87,7 @@ const GameController = function (player1, player2) {
         return false;
       };
       const checkDiagonals = () => {
-        //This function would've been far better with a matriz-like
+        //This function would've been far better with a matrix-like
         //implementation of the board state
         let fstCell = currState[0].getValue();
         let sndCell = currState[4].getValue();
@@ -122,6 +124,8 @@ const GameController = function (player1, player2) {
 
 const ScreenUpdater = function (gameController) {
   const board = document.querySelector(".board");
+  const gameInfo = document.querySelector(".game-info");
+  gameInfo.style.display = "grid";
 
   const updateScreen = () => {
     const currBoard = GameBoard.getBoard();
@@ -171,21 +175,34 @@ const ScreenUpdater = function (gameController) {
     board.removeEventListener("click", onCLickButtonHandler);
   };
 
+  const resetGame = () => {
+    const multiPlayerForm = document.querySelector(
+      ".form-container.multi-player"
+    );
+    gameInfo.style.display = "none";
+    multiPlayerForm.style.display = "block";
+    GameBoard.resetBoard();
+    updateScreen();
+    board.removeEventListener("click", onCLickButtonHandler);
+  };
+
   board.addEventListener("click", onCLickButtonHandler);
+  document
+    .querySelector(".game-info button")
+    .addEventListener("click", resetGame);
   updateScreen();
 };
 
 const inputManager = function () {
+  const singlePlayerButton = document.querySelector(".single_player_button");
+  const multiPlayerButton = document.querySelector(".multi_player_button");
+  const singlePlayerForm = document.querySelector(
+    ".form-container.single-player"
+  );
+  const multiPlayerForm = document.querySelector(
+    ".form-container.multi-player"
+  );
   const setUpEventListeners = () => {
-    const singlePlayerButton = document.querySelector(".single_player_button");
-    const multiPlayerButton = document.querySelector(".multi_player_button");
-    // const singlePlayerForm = document.querySelector(
-    //   ".single-player-form-container form"
-    // );
-    const multiPlayerForm = document.querySelector(
-      ".form-container.multi-player"
-    );
-
     singlePlayerButton.addEventListener("click", displaySinglePlayerForm);
     multiPlayerButton.addEventListener("click", displayMultiplayerForm);
     // singlePlayerForm.addEventListener("submit", startSinglePlayerGame);
@@ -194,24 +211,12 @@ const inputManager = function () {
     );
   };
   const displayMultiplayerForm = () => {
-    const multiPlayerFormContainer = document.querySelector(
-      ".form-container.multi-player"
-    );
-    const singlePlayerFormContainer = document.querySelector(
-      ".form-container.single-player"
-    );
-    multiPlayerFormContainer.style.display = "block";
-    singlePlayerFormContainer.style.display = "none";
+    multiPlayerForm.style.display = "block";
+    singlePlayerForm.style.display = "none";
   };
   const displaySinglePlayerForm = () => {
-    const multiPlayerFormContainer = document.querySelector(
-      ".form-container.multi-player"
-    );
-    const singlePlayerFormContainer = document.querySelector(
-      ".form-container.single-player"
-    );
-    multiPlayerFormContainer.style.display = "none";
-    singlePlayerFormContainer.style.display = "block";
+    multiPlayerForm.style.display = "none";
+    singlePlayerForm.style.display = "block";
   };
 
   const startMultiPlayerGame = (event) => {
@@ -221,6 +226,7 @@ const inputManager = function () {
     const firstPlayer = Player(firstPlayerName, "X");
     const secondPlayer = Player(secondPlayerName, "O");
     const multiPlayerGameController = GameController(firstPlayer, secondPlayer);
+    multiPlayerForm.style.display = "none";
     ScreenUpdater(multiPlayerGameController);
   };
   setUpEventListeners();

@@ -10,37 +10,39 @@
   </head>
   <body>
     <div class="game-container">
-      <div class="game-messages">
-        <div class="form-container multi-player">
-          <form>
-            <div class="player-info">
-              <label for="player1_name">First player's name</label>
-              <input type="text" id="player1_name" required />
-            </div>
-            <div class="player-info">
-              <label for="player2_name">Second player's name</label>
-              <input type="text" id="player2_name" required />
-            </div>
-            <div class="buttons">
-              <button type="submit">Let's Go!</button>
-              <button type="button" class="single_player_button">
-                Single Player :(
-              </button>
-            </div>
-          </form>
-        </div>
-        <div class="form-container single-player">
-          <form>
-            <label for="player_name">Player's name</label>
-            <input type="text" id="player_name" required />
-            <div class="buttons">
-              <button type="submit">Let's Go!</button>
-              <button type="button" class="multi_player_button">
-                Two Players :)
-              </button>
-            </div>
-          </form>
-        </div>
+      <div class="form-container multi-player">
+        <form>
+          <div class="player-info">
+            <label for="player1_name">First player's name</label>
+            <input type="text" id="player1_name" required />
+          </div>
+          <div class="player-info">
+            <label for="player2_name">Second player's name</label>
+            <input type="text" id="player2_name" required />
+          </div>
+          <div class="buttons">
+            <button type="submit">Let's Go!</button>
+            <button type="button" class="single_player_button">
+              Single Player :(
+            </button>
+          </div>
+        </form>
+      </div>
+      <div class="form-container single-player">
+        <form>
+          <label for="player_name">Player's name</label>
+          <input type="text" id="player_name" required />
+          <div class="buttons">
+            <button type="submit">Let's Go!</button>
+            <button type="button" class="multi_player_button">
+              Two Players :)
+            </button>
+          </div>
+        </form>
+      </div>
+      <div class="game-info">
+        <div class="game-messages"></div>
+        <button>Reset Game</button>
       </div>
       <div class="board">
         <button class="cell" data-index="0"></button>
