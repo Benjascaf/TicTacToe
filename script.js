@@ -122,7 +122,7 @@ const GameController = function (player1, player2) {
   return { playRound, getCurrentPLayer, getGameStatus, getTieStatus };
 };
 
-const ScreenUpdater = function (gameController) {
+const ScreenUpdater = function (gameController, isSinglePlayerGame = false) {
   const board = document.querySelector(".board");
   const gameInfo = document.querySelector(".game-info");
   gameInfo.style.display = "grid";
@@ -146,6 +146,15 @@ const ScreenUpdater = function (gameController) {
     if (!selectedCellIndex) return;
     gameController.playRound(selectedCellIndex);
     updateScreen();
+    if (isSinglePlayerGame) {
+      console.log(gameController.getCurrentPLayer());
+      while (
+        gameController.getCurrentPLayer().getPlayerName() === "The Computer"
+      ) {
+        gameController.playRound(Math.floor(Math.random() * 8));
+      }
+      updateScreen();
+    }
   };
 
   const updateGameMessage = () => {
@@ -205,7 +214,7 @@ const inputManager = function () {
   const setUpEventListeners = () => {
     singlePlayerButton.addEventListener("click", displaySinglePlayerForm);
     multiPlayerButton.addEventListener("click", displayMultiplayerForm);
-    // singlePlayerForm.addEventListener("submit", startSinglePlayerGame);
+    singlePlayerForm.addEventListener("submit", startSinglePlayerGame);
     multiPlayerForm.addEventListener("submit", (event) =>
       startMultiPlayerGame(event)
     );
@@ -228,6 +237,19 @@ const inputManager = function () {
     const multiPlayerGameController = GameController(firstPlayer, secondPlayer);
     multiPlayerForm.style.display = "none";
     ScreenUpdater(multiPlayerGameController);
+  };
+
+  const startSinglePlayerGame = (event) => {
+    event.preventDefault();
+    const playerName = document.querySelector("#player_name").value;
+    const firstPlayer = Player(playerName, "X");
+    const computerPlayer = Player("The Computer", "O");
+    const singlePlayerGameController = GameController(
+      firstPlayer,
+      computerPlayer
+    );
+    singlePlayerForm.style.display = "none";
+    ScreenUpdater(singlePlayerGameController, true);
   };
   setUpEventListeners();
 };
