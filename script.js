@@ -28,9 +28,19 @@ const GameBoard = (function () {
 
   const resetBoard = () => gameState.forEach((cell) => cell.changeValue(""));
 
+  //Need this to then project posible board states
+  const resetCell = (index) => gameState[index].changeValue("");
+
   const alreadyOcuppied = (index) => gameState[index].getValue() !== "";
 
-  return { playerChose, getBoard, printBoard, alreadyOcuppied, resetBoard };
+  return {
+    playerChose,
+    getBoard,
+    printBoard,
+    alreadyOcuppied,
+    resetBoard,
+    resetCell,
+  };
 })();
 
 const Player = function (playerName, token) {
@@ -119,7 +129,32 @@ const GameController = function (player1, player2) {
     if (!gameContinues) switchPlayer();
   };
 
-  return { playRound, getCurrentPLayer, getGameStatus, getTieStatus };
+  //Need this to go back after projecting possible board states
+  const resetPlay = (index) => {
+    GameBoard.resetCell(index);
+    //if the play led to a terminal state, change it back
+    gameContinues = gameContinues ? false : true;
+    isTie = isTie ? false : true;
+  };
+
+  const getValidPlays = () => {
+    let validPlays = [];
+    for (let i = 0; i < 9; i++) {
+      if (GameBoard.alreadyOcuppied(i)) {
+        validPlays.push(i);
+      }
+    }
+    return validPlays;
+  };
+
+  return {
+    playRound,
+    getCurrentPLayer,
+    getGameStatus,
+    getTieStatus,
+    resetPlay,
+    getValidPlays,
+  };
 };
 
 const ScreenUpdater = function (gameController, isSinglePlayerGame = false) {
@@ -147,11 +182,11 @@ const ScreenUpdater = function (gameController, isSinglePlayerGame = false) {
     gameController.playRound(selectedCellIndex);
     updateScreen();
     if (isSinglePlayerGame) {
-      console.log(gameController.getCurrentPLayer());
       while (
-        gameController.getCurrentPLayer().getPlayerName() === "The Computer"
+        gameController.getCurrentPLayer().getPlayerName() === "The Computer" &&
+        !gameController.getGameStatus() //If the game finishes with the computer winning the currentplayer will be The Computer after the round
       ) {
-        gameController.playRound(Math.floor(Math.random() * 8));
+        gameController.playRound(Math.floor(Math.random() * 9));
       }
       updateScreen();
     }
