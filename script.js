@@ -51,7 +51,7 @@ const Player = function (playerName, token) {
 
 const GameController = function (player1, player2) {
   let currPlayer = player1;
-  let gameContinues = false;
+  let gameHasFinished = false;
   let isTie = false;
 
   const switchPlayer = () => {
@@ -59,7 +59,7 @@ const GameController = function (player1, player2) {
   };
 
   const getCurrentPLayer = () => currPlayer;
-  const getGameStatus = () => gameContinues;
+  const getGameStatus = () => gameHasFinished;
   const getTieStatus = () => isTie;
 
   const checkGameState = () => {
@@ -113,12 +113,18 @@ const GameController = function (player1, player2) {
 
       const checkForTie = () => {
         const emptySpaces = currState.filter((cell) => cell.getValue() === "");
-        return emptySpaces.length == 0;
+        return (
+          emptySpaces.length == 0 &&
+          !(checkRows() || checkDiagonals() || checkColumns())
+        );
       };
       return { checkColumns, checkRows, checkForTie, checkDiagonals };
     })();
-    gameContinues =
-      Checker.checkRows() || Checker.checkColumns() || Checker.checkDiagonals();
+    gameHasFinished =
+      Checker.checkRows() ||
+      Checker.checkColumns() ||
+      Checker.checkDiagonals() ||
+      Checker.checkForTie();
     isTie = Checker.checkForTie();
   };
 
@@ -126,21 +132,22 @@ const GameController = function (player1, player2) {
     if (GameBoard.alreadyOcuppied(playerMove)) return;
     GameBoard.playerChose(currPlayer.getPlayerToken(), playerMove);
     checkGameState();
-    if (!gameContinues) switchPlayer();
+    if (!gameHasFinished) switchPlayer();
   };
 
   //Need this to go back after projecting possible board states
   const resetPlay = (index) => {
     GameBoard.resetCell(index);
     //if the play led to a terminal state, change it back
-    gameContinues = gameContinues ? false : true;
-    isTie = isTie ? false : true;
+    gameHasFinished = gameHasFinished ? false : false;
+    isTie = isTie ? false : false;
+    switchPlayer();
   };
 
   const getValidPlays = () => {
     let validPlays = [];
     for (let i = 0; i < 9; i++) {
-      if (GameBoard.alreadyOcuppied(i)) {
+      if (!GameBoard.alreadyOcuppied(i)) {
         validPlays.push(i);
       }
     }
@@ -154,6 +161,7 @@ const GameController = function (player1, player2) {
     getTieStatus,
     resetPlay,
     getValidPlays,
+    switchPlayer,
   };
 };
 
@@ -180,24 +188,83 @@ const ScreenUpdater = function (gameController, isSinglePlayerGame = false) {
     const selectedCellIndex = event.target.dataset.index;
     if (!selectedCellIndex) return;
     gameController.playRound(selectedCellIndex);
-    updateScreen();
     if (isSinglePlayerGame) {
       while (
         gameController.getCurrentPLayer().getPlayerName() === "The Computer" &&
-        !gameController.getGameStatus() //If the game finishes with the computer winning the currentplayer will be The Computer after the round
+        !gameController.getGameStatus() //If the game finishes with the player winning the currentplayer will be The Computer after the round
       ) {
-        gameController.playRound(Math.floor(Math.random() * 9));
+        let validPlays = gameController.getValidPlays();
+        let bestMove = validPlays[0];
+        let currentValue = 10;
+        validPlays.forEach((index) => {
+          gameController.playRound(index);
+          console.log();
+          let currMoveValue = minimax(gameController.getValidPlays(), 0, true);
+          if (
+            gameController.getCurrentPLayer().getPlayerName() === "The Computer"
+          ) {
+            console.log("el error ocurrio con", index);
+          }
+          if (currMoveValue < currentValue) {
+            currentValue = currMoveValue;
+            bestMove = index;
+          }
+          gameController.resetPlay(index);
+        });
+        gameController.playRound(bestMove);
       }
-      updateScreen();
+    }
+    updateScreen();
+  };
+
+  const minimax = (validPlays, depth, maximizingPlayer) => {
+    if (gameController.getTieStatus()) {
+      //if the game finishes, gameController's playRound function
+      //won't switch players back, so I have to do it here so that
+      //the "simulated states" don't affect the actual game
+      //(Check how to fix on a better manner)
+      gameController.switchPlayer();
+      return 0;
+    }
+    if (maximizingPlayer) {
+      let value = -10;
+      if (gameController.getGameStatus()) {
+        gameController.switchPlayer();
+        return depth + value;
+      }
+      validPlays.forEach((index) => {
+        gameController.playRound(index);
+        value = Math.max(
+          value,
+          minimax(gameController.getValidPlays(), depth + 1, false)
+        );
+        gameController.resetPlay(index);
+      });
+      return value;
+    } else {
+      let value = 10;
+      if (gameController.getGameStatus()) {
+        gameController.switchPlayer();
+        return value - depth;
+      }
+      validPlays.forEach((index) => {
+        gameController.playRound(index);
+        value = Math.min(
+          value,
+          minimax(gameController.getValidPlays(), depth + 1, true)
+        );
+        gameController.resetPlay(index);
+      });
+      return value;
     }
   };
 
   const updateGameMessage = () => {
-    if (gameController.getGameStatus()) {
-      finishGameWithVictory();
-      return;
-    } else if (gameController.getTieStatus()) {
+    if (gameController.getTieStatus()) {
       finishGameWithTie();
+      return;
+    } else if (gameController.getGameStatus()) {
+      finishGameWithVictory();
       return;
     }
     const messageContainer = document.querySelector(".game-messages");
