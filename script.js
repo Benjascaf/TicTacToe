@@ -21,11 +21,6 @@ const GameBoard = (function () {
 
   const getBoard = () => gameState;
 
-  const printBoard = () => {
-    let toBePrinted = gameState.map((cell) => cell.getValue());
-    console.log(toBePrinted);
-  };
-
   const resetBoard = () => gameState.forEach((cell) => cell.changeValue(""));
 
   //Need this to then project posible board states
@@ -36,7 +31,6 @@ const GameBoard = (function () {
   return {
     playerChose,
     getBoard,
-    printBoard,
     alreadyOcuppied,
     resetBoard,
     resetCell,
@@ -135,6 +129,61 @@ const GameController = function (player1, player2) {
     if (!gameHasFinished) switchPlayer();
   };
 
+  const playAsComputer = () => {
+    let validPlays = getValidPlays();
+    let bestMove = validPlays[0];
+    let currentValue = 10;
+    validPlays.forEach((index) => {
+      playRound(index);
+      let currMoveValue = minimax(getValidPlays(), 0, true);
+      if (currPlayer.getPlayerName() === "The Computer") {
+        console.log("el error ocurrio con", index);
+      }
+      if (currMoveValue < currentValue) {
+        currentValue = currMoveValue;
+        bestMove = index;
+      }
+      resetPlay(index);
+    });
+    playRound(bestMove);
+  };
+
+  const minimax = (validPlays, depth, maximizingPlayer) => {
+    if (isTie) {
+      //if the game finishes, gameController's playRound function
+      //won't switch players back, so I have to do it here so that
+      //the "simulated states" don't affect the actual game
+      //(Check how to fix on a better manner)
+      switchPlayer();
+      return 0;
+    }
+    if (maximizingPlayer) {
+      let value = -10;
+      if (gameHasFinished) {
+        switchPlayer();
+        return depth + value;
+      }
+      validPlays.forEach((index) => {
+        playRound(index);
+        value = Math.max(value, minimax(getValidPlays(), depth + 1, false));
+        resetPlay(index);
+      });
+      return value;
+    } else {
+      let value = 10;
+      if (gameHasFinished) {
+        switchPlayer();
+        return value - depth;
+      }
+      validPlays.forEach((index) => {
+        playRound(index);
+        value = Math.min(value, minimax(getValidPlays(), depth + 1, true));
+        resetPlay(index);
+      });
+      return value;
+    }
+  };
+
   //Need this to go back after projecting possible board states
   const resetPlay = (index) => {
     GameBoard.resetCell(index);
@@ -162,6 +211,7 @@ const GameController = function (player1, player2) {
     resetPlay,
     getValidPlays,
     switchPlayer,
+    playAsComputer,
   };
 };
 
@@ -193,70 +243,10 @@ const ScreenUpdater = function (gameController, isSinglePlayerGame = false) {
         gameController.getCurrentPLayer().getPlayerName() === "The Computer" &&
         !gameController.getGameStatus() //If the game finishes with the player winning the currentplayer will be The Computer after the round
       ) {
-        let validPlays = gameController.getValidPlays();
-        let bestMove = validPlays[0];
-        let currentValue = 10;
-        validPlays.forEach((index) => {
-          gameController.playRound(index);
-          console.log();
-          let currMoveValue = minimax(gameController.getValidPlays(), 0, true);
-          if (
-            gameController.getCurrentPLayer().getPlayerName() === "The Computer"
-          ) {
-            console.log("el error ocurrio con", index);
-          }
-          if (currMoveValue < currentValue) {
-            currentValue = currMoveValue;
-            bestMove = index;
-          }
-          gameController.resetPlay(index);
-        });
-        gameController.playRound(bestMove);
+        gameController.playAsComputer();
       }
     }
     updateScreen();
-  };
-
-  const minimax = (validPlays, depth, maximizingPlayer) => {
-    if (gameController.getTieStatus()) {
-      //if the game finishes, gameController's playRound function
-      //won't switch players back, so I have to do it here so that
-      //the "simulated states" don't affect the actual game
-      //(Check how to fix on a better manner)
-      gameController.switchPlayer();
-      return 0;
-    }
-    if (maximizingPlayer) {
-      let value = -10;
-      if (gameController.getGameStatus()) {
-        gameController.switchPlayer();
-        return depth + value;
-      }
-      validPlays.forEach((index) => {
-        gameController.playRound(index);
-        value = Math.max(
-          value,
-          minimax(gameController.getValidPlays(), depth + 1, false)
-        );
-        gameController.resetPlay(index);
-      });
-      return value;
-    } else {
-      let value = 10;
-      if (gameController.getGameStatus()) {
-        gameController.switchPlayer();
-        return value - depth;
-      }
-      validPlays.forEach((index) => {
-        gameController.playRound(index);
-        value = Math.min(
-          value,
-          minimax(gameController.getValidPlays(), depth + 1, true)
-        );
-        gameController.resetPlay(index);
-      });
-      return value;
-    }
   };
 
   const updateGameMessage = () => {
