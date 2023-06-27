@@ -52,7 +52,7 @@ const GameController = function (player1, player2) {
     currPlayer = currPlayer === player1 ? player2 : player1;
   };
 
-  const getCurrentPLayer = () => currPlayer;
+  const getCurrentPlayerName = () => currPlayer.getPlayerName();
   const getGameStatus = () => gameHasFinished;
   const getTieStatus = () => isTie;
 
@@ -136,7 +136,7 @@ const GameController = function (player1, player2) {
     validPlays.forEach((index) => {
       playRound(index);
       let currMoveValue = minimax(getValidPlays(), 0, true);
-      if (currPlayer.getPlayerName() === "The Computer") {
+      if (getCurrentPlayerName() === "The Computer") {
         console.log("el error ocurrio con", index);
       }
       if (currMoveValue < currentValue) {
@@ -203,15 +203,20 @@ const GameController = function (player1, player2) {
     return validPlays;
   };
 
+  const isValidPlay = (index) => {
+    return index in getValidPlays();
+  };
+
   return {
     playRound,
-    getCurrentPLayer,
+    getCurrentPlayerName,
     getGameStatus,
     getTieStatus,
     resetPlay,
     getValidPlays,
     switchPlayer,
     playAsComputer,
+    isValidPlay,
   };
 };
 
@@ -238,13 +243,12 @@ const ScreenUpdater = function (gameController, isSinglePlayerGame = false) {
     const selectedCellIndex = event.target.dataset.index;
     if (!selectedCellIndex) return;
     gameController.playRound(selectedCellIndex);
-    if (isSinglePlayerGame) {
-      while (
-        gameController.getCurrentPLayer().getPlayerName() === "The Computer" &&
-        !gameController.getGameStatus() //If the game finishes with the player winning the currentplayer will be The Computer after the round
-      ) {
-        gameController.playAsComputer();
-      }
+    if (
+      isSinglePlayerGame &&
+      !gameController.getGameStatus() &&
+      gameController.getCurrentPlayerName() === "The Computer"
+    ) {
+      gameController.playAsComputer();
     }
     updateScreen();
   };
@@ -258,13 +262,11 @@ const ScreenUpdater = function (gameController, isSinglePlayerGame = false) {
       return;
     }
     const messageContainer = document.querySelector(".game-messages");
-    messageContainer.textContent = `It's ${gameController
-      .getCurrentPLayer()
-      .getPlayerName()}'s turn`;
+    messageContainer.textContent = `It's ${gameController.getCurrentPlayerName()}'s turn`;
   };
 
   const finishGameWithVictory = () => {
-    const winner = gameController.getCurrentPLayer().getPlayerName();
+    const winner = gameController.getCurrentPlayerName();
     const messageContainer = document.querySelector(".game-messages");
     messageContainer.textContent = `The Winner is ${winner}!!`;
     board.removeEventListener("click", onCLickButtonHandler);
@@ -294,7 +296,7 @@ const ScreenUpdater = function (gameController, isSinglePlayerGame = false) {
   updateScreen();
 };
 
-const inputManager = function () {
+(function inputManager() {
   const singlePlayerButton = document.querySelector(".single_player_button");
   const multiPlayerButton = document.querySelector(".multi_player_button");
   const singlePlayerForm = document.querySelector(
@@ -344,5 +346,4 @@ const inputManager = function () {
     ScreenUpdater(singlePlayerGameController, true);
   };
   setUpEventListeners();
-};
-inputManager();
+})();
