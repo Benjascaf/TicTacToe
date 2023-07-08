@@ -136,9 +136,6 @@ const GameController = function (player1, player2) {
     validPlays.forEach((index) => {
       playRound(index);
       let currMoveValue = minimax(getValidPlays(), 0, true);
-      if (getCurrentPlayerName() === "The Computer") {
-        console.log("el error ocurrio con", index);
-      }
       if (currMoveValue < currentValue) {
         currentValue = currMoveValue;
         bestMove = index;
@@ -150,17 +147,11 @@ const GameController = function (player1, player2) {
 
   const minimax = (validPlays, depth, maximizingPlayer) => {
     if (isTie) {
-      //if the game finishes, gameController's playRound function
-      //won't switch players back, so I have to do it here so that
-      //the "simulated states" don't affect the actual game
-      //(Check how to fix on a better manner)
-      switchPlayer();
       return 0;
     }
     if (maximizingPlayer) {
       let value = -10;
       if (gameHasFinished) {
-        switchPlayer();
         return depth + value;
       }
       validPlays.forEach((index) => {
@@ -172,7 +163,6 @@ const GameController = function (player1, player2) {
     } else {
       let value = 10;
       if (gameHasFinished) {
-        switchPlayer();
         return value - depth;
       }
       validPlays.forEach((index) => {
@@ -188,9 +178,9 @@ const GameController = function (player1, player2) {
   const resetPlay = (index) => {
     GameBoard.resetCell(index);
     //if the play led to a terminal state, change it back
+    if (!gameHasFinished) switchPlayer();
     gameHasFinished = gameHasFinished ? false : false;
     isTie = isTie ? false : false;
-    switchPlayer();
   };
 
   const getValidPlays = () => {
@@ -222,8 +212,9 @@ const GameController = function (player1, player2) {
 
 const ScreenUpdater = function (gameController, isSinglePlayerGame = false) {
   const board = document.querySelector(".board");
-  const gameInfo = document.querySelector(".game-info");
-  gameInfo.style.display = "grid";
+  // const gameInfo = document.querySelector(".game-info");
+  // gameInfo.style.display = "grid";
+  const gameContainer = document.querySelector(".game-container");
 
   const updateScreen = () => {
     const currBoard = GameBoard.getBoard();
@@ -235,8 +226,8 @@ const ScreenUpdater = function (gameController, isSinglePlayerGame = false) {
       cellButton.dataset.index = index;
       cellButton.textContent = cell.getValue();
       board.appendChild(cellButton);
-      updateGameMessage();
     });
+    setTimeout(updateGameMessage, 100);
   };
 
   const onCLickButtonHandler = (event) => {
@@ -261,20 +252,26 @@ const ScreenUpdater = function (gameController, isSinglePlayerGame = false) {
       finishGameWithVictory();
       return;
     }
-    const messageContainer = document.querySelector(".game-messages");
-    messageContainer.textContent = `It's ${gameController.getCurrentPlayerName()}'s turn`;
+    // const messageContainer = document.querySelector(".game-messages");
+    // messageContainer.textContent = `It's ${gameController.getCurrentPlayerName()}'s turn`;
   };
 
   const finishGameWithVictory = () => {
     const winner = gameController.getCurrentPlayerName();
-    const messageContainer = document.querySelector(".game-messages");
-    messageContainer.textContent = `The Winner is ${winner}!!`;
+    const messageContainer = document.querySelector(".final-message-container");
+    const message = document.querySelector(".final-message-container p");
+    message.textContent = `The Winner is ${winner}!!`;
+    messageContainer.style.display = "flex";
+    gameContainer.style.display = "none";
     board.removeEventListener("click", onCLickButtonHandler);
   };
 
   const finishGameWithTie = () => {
-    const messageContainer = document.querySelector(".game-messages");
-    messageContainer.textContent = `It's a Tie!!`;
+    const messageContainer = document.querySelector(".final-message-container");
+    const message = document.querySelector(".final-message-container p");
+    message.textContent = `It's a Tie!!`;
+    messageContainer.style.display = "flex";
+    gameContainer.style.display = "none";
     board.removeEventListener("click", onCLickButtonHandler);
   };
 
@@ -282,44 +279,30 @@ const ScreenUpdater = function (gameController, isSinglePlayerGame = false) {
     const multiPlayerForm = document.querySelector(
       ".form-container.multi-player"
     );
-    gameInfo.style.display = "none";
+    // gameInfo.style.display = "none";
     multiPlayerForm.style.display = "block";
+    gameContainer.style.display = "none";
     GameBoard.resetBoard();
     updateScreen();
     board.removeEventListener("click", onCLickButtonHandler);
   };
 
   board.addEventListener("click", onCLickButtonHandler);
-  document
-    .querySelector(".game-info button")
-    .addEventListener("click", resetGame);
+  document.querySelector("#reset-btn").addEventListener("click", resetGame);
   updateScreen();
 };
 
 (function inputManager() {
   const singlePlayerButton = document.querySelector(".single_player_button");
-  const multiPlayerButton = document.querySelector(".multi_player_button");
-  const singlePlayerForm = document.querySelector(
-    ".form-container.single-player"
-  );
   const multiPlayerForm = document.querySelector(
     ".form-container.multi-player"
   );
+  const gameContainer = document.querySelector(".game-container");
   const setUpEventListeners = () => {
-    singlePlayerButton.addEventListener("click", displaySinglePlayerForm);
-    multiPlayerButton.addEventListener("click", displayMultiplayerForm);
-    singlePlayerForm.addEventListener("submit", startSinglePlayerGame);
+    singlePlayerButton.addEventListener("click", startSinglePlayerGame);
     multiPlayerForm.addEventListener("submit", (event) =>
       startMultiPlayerGame(event)
     );
-  };
-  const displayMultiplayerForm = () => {
-    multiPlayerForm.style.display = "block";
-    singlePlayerForm.style.display = "none";
-  };
-  const displaySinglePlayerForm = () => {
-    multiPlayerForm.style.display = "none";
-    singlePlayerForm.style.display = "block";
   };
 
   const startMultiPlayerGame = (event) => {
@@ -330,19 +313,20 @@ const ScreenUpdater = function (gameController, isSinglePlayerGame = false) {
     const secondPlayer = Player(secondPlayerName, "O");
     const multiPlayerGameController = GameController(firstPlayer, secondPlayer);
     multiPlayerForm.style.display = "none";
+    document.querySelector(".board").style.display = "grid";
+    gameContainer.style.display = "flex";
     ScreenUpdater(multiPlayerGameController);
   };
 
-  const startSinglePlayerGame = (event) => {
-    event.preventDefault();
-    const playerName = document.querySelector("#player_name").value;
-    const firstPlayer = Player(playerName, "X");
+  const startSinglePlayerGame = () => {
+    const firstPlayer = Player("Your", "X");
     const computerPlayer = Player("The Computer", "O");
     const singlePlayerGameController = GameController(
       firstPlayer,
       computerPlayer
     );
-    singlePlayerForm.style.display = "none";
+    multiPlayerForm.style.display = "none";
+    gameContainer.style.display = "flex";
     ScreenUpdater(singlePlayerGameController, true);
   };
   setUpEventListeners();

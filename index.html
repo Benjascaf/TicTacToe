@@ -6,44 +6,34 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
     <link rel="stylesheet" href="style.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,400;0,700;0,900;1,300;1,400&display=swap"
+      rel="stylesheet"
+    />
     <script src="script.js" defer></script>
   </head>
   <body>
+    <div class="form-container multi-player">
+      <form>
+        <div class="player-info">
+          <label for="player1_name">Player 1</label>
+          <input type="text" id="player1_name" required />
+        </div>
+        <div class="player-info">
+          <label for="player2_name">Player 2</label>
+          <input type="text" id="player2_name" required />
+        </div>
+        <div class="buttons">
+          <button type="button" class="single_player_button">
+            I'm alone :(
+          </button>
+          <button type="submit">Let's Go!</button>
+        </div>
+      </form>
+    </div>
     <div class="game-container">
-      <div class="form-container multi-player">
-        <form>
-          <div class="player-info">
-            <label for="player1_name">First player's name</label>
-            <input type="text" id="player1_name" required />
-          </div>
-          <div class="player-info">
-            <label for="player2_name">Second player's name</label>
-            <input type="text" id="player2_name" required />
-          </div>
-          <div class="buttons">
-            <button type="submit">Let's Go!</button>
-            <button type="button" class="single_player_button">
-              Single Player :(
-            </button>
-          </div>
-        </form>
-      </div>
-      <div class="form-container single-player">
-        <form>
-          <label for="player_name">Player's name</label>
-          <input type="text" id="player_name" required />
-          <div class="buttons">
-            <button type="submit">Let's Go!</button>
-            <button type="button" class="multi_player_button">
-              Two Players :)
-            </button>
-          </div>
-        </form>
-      </div>
-      <div class="game-info">
-        <div class="game-messages"></div>
-        <button>Reset Game</button>
-      </div>
       <div class="board">
         <button class="cell" data-index="0"></button>
         <button class="cell" data-index="1"></button>
@@ -55,6 +45,11 @@
         <button class="cell" data-index="7"></button>
         <button class="cell" data-index="8"></button>
       </div>
+      <button id="reset-btn">Reset Game</button>
+    </div>
+    <div class="final-message-container">
+      <p>The winner is The Benjamin</p>
+      <button id="new-btn">New Game</button>
     </div>
   </body>
 </html>
