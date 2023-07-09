@@ -212,8 +212,7 @@ const GameController = function (player1, player2) {
 
 const ScreenUpdater = function (gameController, isSinglePlayerGame = false) {
   const board = document.querySelector(".board");
-  // const gameInfo = document.querySelector(".game-info");
-  // gameInfo.style.display = "grid";
+  const messageContainer = document.querySelector(".final-message-container");
   const gameContainer = document.querySelector(".game-container");
 
   const updateScreen = () => {
@@ -252,8 +251,6 @@ const ScreenUpdater = function (gameController, isSinglePlayerGame = false) {
       finishGameWithVictory();
       return;
     }
-    // const messageContainer = document.querySelector(".game-messages");
-    // messageContainer.textContent = `It's ${gameController.getCurrentPlayerName()}'s turn`;
   };
 
   const finishGameWithVictory = () => {
@@ -267,7 +264,6 @@ const ScreenUpdater = function (gameController, isSinglePlayerGame = false) {
   };
 
   const finishGameWithTie = () => {
-    const messageContainer = document.querySelector(".final-message-container");
     const message = document.querySelector(".final-message-container p");
     message.textContent = `It's a Tie!!`;
     messageContainer.style.display = "flex";
@@ -281,14 +277,15 @@ const ScreenUpdater = function (gameController, isSinglePlayerGame = false) {
     );
     // gameInfo.style.display = "none";
     multiPlayerForm.style.display = "block";
+    messageContainer.style.display = "none";
     gameContainer.style.display = "none";
     GameBoard.resetBoard();
-    updateScreen();
     board.removeEventListener("click", onCLickButtonHandler);
   };
 
   board.addEventListener("click", onCLickButtonHandler);
   document.querySelector("#reset-btn").addEventListener("click", resetGame);
+  document.querySelector("#new-btn").addEventListener("click", resetGame);
   updateScreen();
 };
 
