@@ -38,10 +38,6 @@ body {
   align-items: center;
 }
 
-/* .game-info {
-  font-size: 1.6rem;
-  display: none;
-} */
 .board {
   aspect-ratio: 1 / 1;
   width: 400px;
